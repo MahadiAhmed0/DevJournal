@@ -12,14 +12,16 @@ export class SupabaseService implements OnModuleInit {
   onModuleInit() {
     const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
     const supabaseAnonKey = this.configService.get<string>('SUPABASE_ANON_KEY');
-    const supabaseServiceRole = this.configService.get<string>('SUPABASE_Service_Role');
+    const supabaseServiceRole = this.configService.get<string>('SUPABASE_SERVICE_ROLE');
 
     if (!supabaseUrl || !supabaseAnonKey) {
       throw new Error('Missing Supabase configuration');
     }
 
+    // Client for regular operations (respects RLS)
     this.supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+    // Admin client for server-side operations (bypasses RLS)
     if (supabaseServiceRole) {
       this.supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole, {
         auth: {

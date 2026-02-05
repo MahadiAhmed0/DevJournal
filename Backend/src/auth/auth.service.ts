@@ -3,11 +3,10 @@ import {
   BadRequestException,
   UnauthorizedException,
   ConflictException,
-  InternalServerErrorException,
+
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupabaseService } from '../common/supabase/supabase.service';
-import { UsersService } from '../users/users.service';
 import { SignUpDto, SignInDto, ForgotPasswordDto, ResetPasswordDto } from './dto';
 
 @Injectable()
@@ -15,13 +14,13 @@ export class AuthService {
   constructor(
     private supabaseService: SupabaseService,
     private configService: ConfigService,
-    private usersService: UsersService,
   ) {}
 
   private async isUsernameTaken(username: string): Promise<boolean> {
     const supabaseAdmin = this.supabaseService.getAdminClient();
     
     if (!supabaseAdmin) {
+      // Fallback: can't check without admin client, allow signup
       return false;
     }
 
@@ -42,6 +41,7 @@ export class AuthService {
     const { email, password, username } = signUpDto;
     const supabase = this.supabaseService.getClient();
 
+    // Check if username is already taken
     const usernameTaken = await this.isUsernameTaken(username);
     if (usernameTaken) {
       throw new ConflictException('Username is already taken');
@@ -60,23 +60,6 @@ export class AuthService {
 
     if (error) {
       throw new BadRequestException(error.message);
-    }
-
-    // Create a linked user record in our database using the same ID from Supabase Auth
-    if (data.user) {
-      try {
-        await this.usersService.createUser({
-          id: data.user.id,
-          email: email,
-          name: username, // Use username as initial display name
-          username: username,
-        });
-      } catch (dbError) {
-        // If database creation fails, we should clean up the Supabase user
-        // For now, log the error - in production you might want to delete the Supabase user
-        console.error('Failed to create user in database:', dbError);
-        throw new InternalServerErrorException('Failed to complete user registration');
-      }
     }
 
     return {
@@ -112,6 +95,7 @@ export class AuthService {
     const { error } = await supabase.auth.admin.signOut(accessToken);
 
     if (error) {
+      // Try regular signout if admin signout fails
       const { error: regularError } = await supabase.auth.signOut();
       if (regularError) {
         throw new BadRequestException(regularError.message);
@@ -145,6 +129,7 @@ export class AuthService {
     const { password } = resetPasswordDto;
     const supabase = this.supabaseService.getClient();
 
+    // Set the session using the access token from the reset password link
     const { error: sessionError } = await supabase.auth.setSession({
       access_token: accessToken,
       refresh_token: '',
@@ -204,9 +189,11 @@ export class AuthService {
   ) {
     const supabase = this.supabaseService.getClient();
 
+    // Check if new username is already taken (if being changed)
     if (updateData.username) {
       const usernameTaken = await this.isUsernameTaken(updateData.username);
       if (usernameTaken) {
+        // Get current user to check if it's their own username
         const { data: currentUser } = await supabase.auth.getUser(accessToken);
         const currentUsername = currentUser?.user?.user_metadata?.username || currentUser?.user?.user_metadata?.display_name;
         if (currentUsername?.toLowerCase() !== updateData.username.toLowerCase()) {
@@ -215,6 +202,7 @@ export class AuthService {
       }
     }
 
+    // Set session to make authenticated request
     await supabase.auth.setSession({
       access_token: accessToken,
       refresh_token: '',

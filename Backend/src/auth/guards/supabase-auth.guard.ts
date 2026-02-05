@@ -5,14 +5,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { SupabaseService } from '../../common/supabase/supabase.service';
-import { UsersService } from '../../users/users.service';
 
 @Injectable()
 export class SupabaseAuthGuard implements CanActivate {
-  constructor(
-    private supabaseService: SupabaseService,
-    private usersService: UsersService,
-  ) {}
+  constructor(private supabaseService: SupabaseService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -36,20 +32,10 @@ export class SupabaseAuthGuard implements CanActivate {
         throw new UnauthorizedException('Invalid or expired token');
       }
 
-      // Ensure a corresponding Prisma User exists (just-in-time provisioning)
-      // This handles OAuth logins and edge cases where Supabase user exists but Prisma user doesn't
-      const prismaUser = await this.usersService.findOrCreateFromSupabase(data.user);
-
-      // Attach both Supabase user and Prisma user to the request
+      // Attach user to request object
       request.user = data.user;
-      request.prismaUser = prismaUser;
-      
       return true;
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-      console.error('Auth guard error:', error);
       throw new UnauthorizedException('Invalid or expired token');
     }
   }
