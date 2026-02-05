@@ -3,9 +3,11 @@ import {
   BadRequestException,
   UnauthorizedException,
   ConflictException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupabaseService } from '../common/supabase/supabase.service';
+import { UsersService } from '../users/users.service';
 import { SignUpDto, SignInDto, ForgotPasswordDto, ResetPasswordDto } from './dto';
 
 @Injectable()
@@ -13,6 +15,7 @@ export class AuthService {
   constructor(
     private supabaseService: SupabaseService,
     private configService: ConfigService,
+    private usersService: UsersService,
   ) {}
 
   private async isUsernameTaken(username: string): Promise<boolean> {
@@ -57,6 +60,23 @@ export class AuthService {
 
     if (error) {
       throw new BadRequestException(error.message);
+    }
+
+    // Create a linked user record in our database using the same ID from Supabase Auth
+    if (data.user) {
+      try {
+        await this.usersService.createUser({
+          id: data.user.id,
+          email: email,
+          name: username, // Use username as initial display name
+          username: username,
+        });
+      } catch (dbError) {
+        // If database creation fails, we should clean up the Supabase user
+        // For now, log the error - in production you might want to delete the Supabase user
+        console.error('Failed to create user in database:', dbError);
+        throw new InternalServerErrorException('Failed to complete user registration');
+      }
     }
 
     return {

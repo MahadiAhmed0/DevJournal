@@ -54,9 +54,10 @@ export class UsersService {
     return updatedUser;
   }
 
-  async createUser(data: { email: string; name: string; username: string }) {
+  async createUser(data: { id: string; email: string; name: string; username: string }) {
     return this.prisma.user.create({
       data: {
+        id: data.id,
         email: data.email,
         name: data.name,
         username: data.username,
