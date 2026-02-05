@@ -158,9 +158,15 @@ export class UsersService {
         githubUrl: true,
         linkedinUrl: true,
         createdAt: true,
-        // When entries/snippets relations are added:
-        // entries: { where: { isPublic: true } },
-        // snippets: { where: { isPublic: true } },
+        entries: {
+          where: { isPublic: true },
+          orderBy: { createdAt: 'desc' },
+          include: { tags: true },
+        },
+        snippets: {
+          where: { isPublic: true },
+          orderBy: { createdAt: 'desc' },
+        },
       },
     });
 

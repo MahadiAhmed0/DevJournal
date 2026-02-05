@@ -28,10 +28,9 @@ export class PublicProfileDto {
   @ApiProperty({ example: '2026-02-05T12:00:00.000Z' })
   createdAt: Date;
 
-  // Note: entries and snippets will be added when those modules are available
-  // @ApiProperty({ type: [EntryResponseDto], required: false })
-  // entries?: EntryResponseDto[];
-  
-  // @ApiProperty({ type: [SnippetResponseDto], required: false })
-  // snippets?: SnippetResponseDto[];
+  @ApiProperty({ description: 'Public journal entries', type: 'array', required: false })
+  entries?: any[];
+
+  @ApiProperty({ description: 'Public code snippets', type: 'array', required: false })
+  snippets?: any[];
 }

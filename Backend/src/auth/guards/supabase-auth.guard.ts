@@ -39,7 +39,7 @@ export class SupabaseAuthGuard implements CanActivate {
       // Attach Supabase user to request
       request.user = data.user;
 
-      // Find or create Prisma user (just-in-time provisioning)
+      // JIT provision: find or create Prisma user from Supabase auth data
       const prismaUser = await this.usersService.findOrCreateFromSupabase(data.user);
       request.prismaUser = prismaUser;
 
