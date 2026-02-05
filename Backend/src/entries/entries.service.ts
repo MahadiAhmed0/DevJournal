@@ -201,4 +201,88 @@ export class EntriesService {
       totalPages: Math.ceil(total / limit),
     };
   }
+
+  /**
+   * Get all public entries (for discovery)
+   */
+  async findAllPublicEntries(query: QueryEntryDto) {
+    const { page = 1, limit = 10 } = query;
+    const skip = (page - 1) * limit;
+
+    const where = { isPublic: true };
+
+    const [data, total] = await Promise.all([
+      this.prisma.entry.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          tags: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
+      }),
+      this.prisma.entry.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  /**
+   * Search public entries by title or content
+   */
+  async searchPublicEntries(searchQuery: string, query: QueryEntryDto) {
+    const { page = 1, limit = 10 } = query;
+    const skip = (page - 1) * limit;
+
+    const where: any = {
+      isPublic: true,
+      OR: [
+        { title: { contains: searchQuery, mode: 'insensitive' } },
+        { content: { contains: searchQuery, mode: 'insensitive' } },
+      ],
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.entry.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          tags: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
+      }),
+      this.prisma.entry.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
 }

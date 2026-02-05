@@ -16,6 +16,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { Request } from 'express';
@@ -38,6 +39,24 @@ export class EntriesController {
     private readonly entriesService: EntriesService,
     private readonly supabaseService: SupabaseService,
   ) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Get all public entries' })
+  @ApiResponse({ status: 200, description: 'List of public entries', type: PaginatedEntriesDto })
+  async findAllPublic(@Query() query: QueryEntryDto): Promise<PaginatedEntriesDto> {
+    return this.entriesService.findAllPublicEntries(query);
+  }
+
+  @Get('search')
+  @ApiOperation({ summary: 'Search public entries by title or content' })
+  @ApiQuery({ name: 'q', required: true, description: 'Search query' })
+  @ApiResponse({ status: 200, description: 'Matching public entries', type: PaginatedEntriesDto })
+  async searchPublic(
+    @Query('q') searchQuery: string,
+    @Query() query: QueryEntryDto,
+  ): Promise<PaginatedEntriesDto> {
+    return this.entriesService.searchPublicEntries(searchQuery || '', query);
+  }
 
   @Post()
   @UseGuards(SupabaseAuthGuard)
