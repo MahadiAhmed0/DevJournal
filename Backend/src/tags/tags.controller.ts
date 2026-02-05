@@ -19,7 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { TagsService } from './tags.service';
-import { AddTagsDto, RemoveTagsDto, UpdateTagsDto, TagResponseDto } from './dto';
+import { AddTagsDto, RemoveTagsDto, UpdateTagsDto, TagResponseDto, CreateTagDto, TagEntriesQueryDto } from './dto';
 import { SupabaseAuthGuard } from '../auth/guards';
 import { CurrentPrismaUser } from '../auth/decorators';
 
@@ -27,6 +27,16 @@ import { CurrentPrismaUser } from '../auth/decorators';
 @Controller('tags')
 export class TagsController {
   constructor(private readonly tagsService: TagsService) {}
+
+  @Post()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new tag' })
+  @ApiResponse({ status: 201, description: 'Tag created', type: TagResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async createTag(@Body() createTagDto: CreateTagDto): Promise<TagResponseDto> {
+    return this.tagsService.createTag(createTagDto.name);
+  }
 
   @Get()
   @ApiOperation({ summary: 'Get all tags' })
@@ -53,6 +63,39 @@ export class TagsController {
     @Query('limit') limit?: number,
   ): Promise<TagResponseDto[]> {
     return this.tagsService.searchTags(query || '', limit || 10);
+  }
+
+  @Get(':name')
+  @ApiOperation({ summary: 'Get tag by name' })
+  @ApiParam({ name: 'name', description: 'Tag name (slug)' })
+  @ApiResponse({ status: 200, description: 'Tag found' })
+  @ApiResponse({ status: 404, description: 'Tag not found' })
+  async getTagByName(@Param('name') name: string) {
+    return this.tagsService.findByName(name);
+  }
+
+  @Get(':name/entries')
+  @ApiOperation({ summary: 'Get public entries for a tag' })
+  @ApiParam({ name: 'name', description: 'Tag name (slug)' })
+  @ApiResponse({ status: 200, description: 'Paginated public entries with this tag' })
+  @ApiResponse({ status: 404, description: 'Tag not found' })
+  async getTagEntries(
+    @Param('name') name: string,
+    @Query() query: TagEntriesQueryDto,
+  ) {
+    return this.tagsService.getEntriesByTagName(name, query.page, query.limit);
+  }
+
+  @Delete(':name')
+  @UseGuards(SupabaseAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a tag' })
+  @ApiParam({ name: 'name', description: 'Tag name (slug)' })
+  @ApiResponse({ status: 200, description: 'Tag deleted' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Tag not found' })
+  async deleteTag(@Param('name') name: string) {
+    return this.tagsService.deleteTag(name);
   }
 }
 
