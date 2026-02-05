@@ -34,6 +34,9 @@ export const queryKeys = {
     all: ['tags'] as const,
     lists: () => [...queryKeys.tags.all, 'list'] as const,
     list: () => [...queryKeys.tags.lists()] as const,
+    popular: (limit?: number) => [...queryKeys.tags.all, 'popular', limit] as const,
+    byName: (name: string) => [...queryKeys.tags.all, 'byName', name] as const,
+    entries: (name: string, page?: number) => [...queryKeys.tags.all, 'entries', name, page] as const,
   },
   users: {
     all: ['users'] as const,

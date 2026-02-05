@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Layout from '@/components/layout/Layout';
+import Landing from '@/pages/Landing';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Dashboard from '@/pages/Dashboard';
@@ -12,6 +13,7 @@ import SnippetForm from '@/pages/SnippetForm';
 import SnippetDetail from '@/pages/SnippetDetail';
 import Profile from '@/pages/Profile';
 import PublicProfile from '@/pages/PublicProfile';
+import TagEntries from '@/pages/TagEntries';
 
 // Protected route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -54,7 +56,10 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Public landing page */}
+      <Route path="/" element={<Landing />} />
+
+      {/* Auth routes */}
       <Route
         path="/login"
         element={
@@ -71,20 +76,21 @@ function App() {
           </PublicRoute>
         }
       />
-      
+
       {/* Public profile route */}
-      <Route path="/:username" element={<PublicProfile />} />
+      <Route path="/u/:username" element={<PublicProfile />} />
+
+      {/* Tag entries route */}
+      <Route path="/tags/:slug" element={<TagEntries />} />
 
       {/* Protected routes */}
       <Route
-        path="/"
         element={
           <ProtectedRoute>
             <Layout />
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="entries" element={<Entries />} />
         <Route path="entries/new" element={<EntryForm />} />
@@ -98,7 +104,7 @@ function App() {
       </Route>
 
       {/* Catch all */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

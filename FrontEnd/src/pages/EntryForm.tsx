@@ -18,6 +18,7 @@ export default function EntryForm() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isPublic, setIsPublic] = useState(false);
+  const [tagInput, setTagInput] = useState('');
   const [previewMode, setPreviewMode] = useState<'write' | 'preview' | 'split'>('write');
   const [error, setError] = useState('');
 
@@ -27,6 +28,7 @@ export default function EntryForm() {
       setTitle(existing.title);
       setContent(existing.content);
       setIsPublic(existing.isPublic);
+      setTagInput(existing.tags.map((t) => t.name).join(', '));
     }
   }, [existing]);
 
@@ -47,10 +49,15 @@ export default function EntryForm() {
       }
 
       try {
+        const parsedTags = tagInput
+          .split(',')
+          .map((t) => t.trim().toLowerCase().replace(/[^a-z0-9_-]/g, ''))
+          .filter(Boolean);
+
         if (isEditing) {
-          await updateMutation.mutateAsync({ title, content, isPublic });
+          await updateMutation.mutateAsync({ title, content, isPublic, tags: parsedTags });
         } else {
-          await createMutation.mutateAsync({ title, content, isPublic });
+          await createMutation.mutateAsync({ title, content, isPublic, tags: parsedTags });
         }
       } catch (err) {
         const msg =
@@ -61,7 +68,7 @@ export default function EntryForm() {
         setError(typeof msg === 'string' ? msg : String(msg));
       }
     },
-    [title, content, isPublic, isEditing, createMutation, updateMutation],
+    [title, content, isPublic, tagInput, isEditing, createMutation, updateMutation],
   );
 
   if (isEditing && loadingEntry) {
@@ -136,6 +143,24 @@ export default function EntryForm() {
             )}{' '}
             — {isPublic ? 'visible to everyone' : 'only you can see this'}
           </span>
+        </div>
+
+        {/* Tags */}
+        <div className="mb-4">
+          <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
+            Tags
+          </label>
+          <input
+            id="tags"
+            type="text"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            placeholder="e.g. react, typescript, devops (comma-separated)"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            Comma-separated. Only letters, numbers, hyphens, and underscores allowed.
+          </p>
         </div>
 
         {/* Editor toolbar */}

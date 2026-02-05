@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { entriesApi } from '@/lib/axios';
+import { entriesApi, tagsApi } from '@/lib/axios';
 import { queryKeys } from '@/lib/queryClient';
 import { useNavigate } from 'react-router-dom';
 
@@ -55,10 +55,17 @@ export function useCreateEntry() {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: (data: { title: string; content: string; summary?: string; isPublic?: boolean }) =>
-      entriesApi.create(data).then((r) => r.data as Entry),
+    mutationFn: async (data: { title: string; content: string; summary?: string; isPublic?: boolean; tags?: string[] }) => {
+      const { tags, ...entryData } = data;
+      const entry = await entriesApi.create(entryData).then((r) => r.data as Entry);
+      if (tags && tags.length > 0) {
+        await tagsApi.updateEntryTags(entry.id, tags);
+      }
+      return entry;
+    },
     onSuccess: (entry) => {
       qc.invalidateQueries({ queryKey: queryKeys.entries.all });
+      qc.invalidateQueries({ queryKey: queryKeys.tags.all });
       navigate(`/entries/${entry.id}`);
     },
   });
@@ -69,10 +76,17 @@ export function useUpdateEntry(id: string) {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: (data: { title?: string; content?: string; summary?: string; isPublic?: boolean }) =>
-      entriesApi.update(id, data).then((r) => r.data as Entry),
+    mutationFn: async (data: { title?: string; content?: string; summary?: string; isPublic?: boolean; tags?: string[] }) => {
+      const { tags, ...entryData } = data;
+      const entry = await entriesApi.update(id, entryData).then((r) => r.data as Entry);
+      if (tags !== undefined) {
+        await tagsApi.updateEntryTags(id, tags);
+      }
+      return entry;
+    },
     onSuccess: (entry) => {
       qc.invalidateQueries({ queryKey: queryKeys.entries.all });
+      qc.invalidateQueries({ queryKey: queryKeys.tags.all });
       qc.setQueryData(queryKeys.entries.detail(id), entry);
       navigate(`/entries/${entry.id}`);
     },

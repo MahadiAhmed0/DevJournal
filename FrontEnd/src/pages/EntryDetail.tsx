@@ -68,12 +68,13 @@ export default function EntryDetail() {
           {entry.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {entry.tags.map((tag) => (
-                <span
+                <Link
                   key={tag.id}
-                  className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-700"
+                  to={`/tags/${tag.name}`}
+                  className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
                 >
                   {tag.name}
-                </span>
+                </Link>
               ))}
             </div>
           )}

@@ -6,9 +6,12 @@ import { useMyEntries, useDeleteEntry, type Entry } from '@/hooks/useEntries';
 
 function TagBadge({ name }: { name: string }) {
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-700">
+    <Link
+      to={`/tags/${name}`}
+      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
+    >
       {name}
-    </span>
+    </Link>
   );
 }
 

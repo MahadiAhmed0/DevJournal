@@ -106,10 +106,13 @@ export const snippetsApi = {
 
 export const tagsApi = {
   getAll: () => api.get('/tags'),
-  getOne: (id: string) => api.get(`/tags/${id}`),
-  create: (data: { name: string }) => api.post('/tags', data),
-  update: (id: string, data: { name: string }) => api.patch(`/tags/${id}`, data),
-  delete: (id: string) => api.delete(`/tags/${id}`),
+  getPopular: (limit?: number) => api.get('/tags/popular', { params: { limit } }),
+  search: (q: string, limit?: number) => api.get('/tags/search', { params: { q, limit } }),
+  getByName: (name: string) => api.get(`/tags/${name}`),
+  getEntries: (name: string, params?: { page?: number; limit?: number }) =>
+    api.get(`/tags/${name}/entries`, { params }),
+  updateEntryTags: (entryId: string, tags: string[]) =>
+    api.put(`/entries/${entryId}/tags`, { tags }),
 };
 
 export const usersApi = {

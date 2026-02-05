@@ -72,14 +72,15 @@ function TagCloud({ entries }: { entries: PublicEntry[] }) {
   return (
     <div className="flex flex-wrap gap-2">
       {sorted.map(([name, count]) => (
-        <span
+        <Link
           key={name}
-          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-50 text-primary-700 ${sizeClass(count)}`}
+          to={`/tags/${name}`}
+          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors ${sizeClass(count)}`}
           title={`${count} ${count === 1 ? 'entry' : 'entries'}`}
         >
           {name}
           <span className="text-primary-400 text-xs font-normal">({count})</span>
-        </span>
+        </Link>
       ))}
     </div>
   );
@@ -339,12 +340,13 @@ export default function PublicProfile() {
                     {entry.tags.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-1.5">
                         {entry.tags.map((tag) => (
-                          <span
+                          <Link
                             key={tag.id}
-                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-700"
+                            to={`/tags/${tag.name}`}
+                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
                           >
                             {tag.name}
-                          </span>
+                          </Link>
                         ))}
                       </div>
                     )}
