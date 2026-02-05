@@ -28,4 +28,9 @@ export class QueryEntryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiProperty({ example: 'journal', required: false, description: 'Search query (alias for /search endpoint)' })
+  @IsOptional()
+  @IsString()
+  q?: string;
 }
