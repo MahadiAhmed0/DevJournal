@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   UnauthorizedException,
+  ConflictException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupabaseService } from '../common/supabase/supabase.service';
@@ -14,16 +15,44 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
+  private async isUsernameTaken(username: string): Promise<boolean> {
+    const supabaseAdmin = this.supabaseService.getAdminClient();
+    
+    if (!supabaseAdmin) {
+      // Fallback: can't check without admin client, allow signup
+      return false;
+    }
+
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (error || !data) {
+      return false;
+    }
+
+    return data.users.some(
+      (user) => 
+        user.user_metadata?.username?.toLowerCase() === username.toLowerCase() ||
+        user.user_metadata?.display_name?.toLowerCase() === username.toLowerCase()
+    );
+  }
+
   async signUp(signUpDto: SignUpDto) {
-    const { email, password, fullName } = signUpDto;
+    const { email, password, username } = signUpDto;
     const supabase = this.supabaseService.getClient();
+
+    // Check if username is already taken
+    const usernameTaken = await this.isUsernameTaken(username);
+    if (usernameTaken) {
+      throw new ConflictException('Username is already taken');
+    }
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          full_name: fullName,
+          display_name: username,
+          username: username,
         },
       },
     });
@@ -155,9 +184,22 @@ export class AuthService {
 
   async updateProfile(
     accessToken: string,
-    updateData: { fullName?: string; email?: string },
+    updateData: { username?: string; email?: string },
   ) {
     const supabase = this.supabaseService.getClient();
+
+    // Check if new username is already taken (if being changed)
+    if (updateData.username) {
+      const usernameTaken = await this.isUsernameTaken(updateData.username);
+      if (usernameTaken) {
+        // Get current user to check if it's their own username
+        const { data: currentUser } = await supabase.auth.getUser(accessToken);
+        const currentUsername = currentUser?.user?.user_metadata?.username || currentUser?.user?.user_metadata?.display_name;
+        if (currentUsername?.toLowerCase() !== updateData.username.toLowerCase()) {
+          throw new ConflictException('Username is already taken');
+        }
+      }
+    }
 
     // Set session to make authenticated request
     await supabase.auth.setSession({
@@ -165,14 +207,17 @@ export class AuthService {
       refresh_token: '',
     });
 
-    const updatePayload: { email?: string; data?: { full_name?: string } } = {};
+    const updatePayload: { email?: string; data?: { display_name?: string; username?: string } } = {};
 
     if (updateData.email) {
       updatePayload.email = updateData.email;
     }
 
-    if (updateData.fullName) {
-      updatePayload.data = { full_name: updateData.fullName };
+    if (updateData.username) {
+      updatePayload.data = {
+        display_name: updateData.username,
+        username: updateData.username,
+      };
     }
 
     const { data, error } = await supabase.auth.updateUser(updatePayload);

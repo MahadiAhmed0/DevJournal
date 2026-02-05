@@ -14,7 +14,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { SignUpDto, SignInDto, ForgotPasswordDto, ResetPasswordDto } from './dto';
+import { SignUpDto, SignInDto, ForgotPasswordDto, ResetPasswordDto, UpdateProfileDto } from './dto';
 import { SupabaseAuthGuard } from './guards';
 import { CurrentUser } from './decorators';
 import { User } from '@supabase/supabase-js';
@@ -96,9 +96,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Update current user profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 409, description: 'Username already taken' })
   async updateProfile(
     @Headers('authorization') authHeader: string,
-    @Body() updateData: { fullName?: string; email?: string },
+    @Body() updateData: UpdateProfileDto,
   ) {
     const token = authHeader?.replace('Bearer ', '');
     return this.authService.updateProfile(token, updateData);
