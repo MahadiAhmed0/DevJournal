@@ -118,8 +118,14 @@ export const tagsApi = {
 export const usersApi = {
   getMe: () => api.get('/users/me'),
   getProfile: (username: string) => api.get(`/users/profile/${username}`),
-  updateProfile: (data: { username?: string; bio?: string; avatarUrl?: string }) =>
-    api.patch('/users/me', data),
+  updateProfile: (data: {
+    name?: string;
+    username?: string;
+    avatar?: string;
+    bio?: string;
+    githubUrl?: string;
+    linkedinUrl?: string;
+  }) => api.patch('/users/me', data),
 };
 
 export const authApi = {
