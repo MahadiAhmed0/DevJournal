@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { entriesApi, tagsApi } from '@/lib/axios';
+import { entriesApi, snippetsApi, tagsApi } from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -18,6 +18,14 @@ interface EntryUser {
   avatar: string | null;
 }
 
+interface Snippet {
+  id: string;
+  title: string;
+  code: string;
+  language: string;
+  description: string | null;
+}
+
 interface PublicEntry {
   id: string;
   title: string;
@@ -27,7 +35,26 @@ interface PublicEntry {
   createdAt: string;
   updatedAt: string;
   tags: Tag[];
+  snippets?: Snippet[];
   user: EntryUser;
+}
+
+interface SnippetUser {
+  id: string;
+  name: string;
+  username: string;
+  avatar: string | null;
+}
+
+interface PublicSnippet {
+  id: string;
+  title: string;
+  code: string;
+  language: string;
+  description: string | null;
+  isPublic: boolean;
+  createdAt: string;
+  user: SnippetUser;
 }
 
 interface PaginatedResponse {
@@ -160,20 +187,8 @@ function EntryCard({ entry }: { entry: PublicEntry }) {
             </time>
           </div>
 
-          {/* Summary or content preview */}
-          {entry.summary ? (
-            <div className="mt-2 flex items-start gap-2">
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 text-xs font-medium shrink-0 mt-0.5">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-                </svg>
-                AI
-              </span>
-              <p className="text-sm text-gray-600 line-clamp-2">{entry.summary}</p>
-            </div>
-          ) : (
-            <p className="mt-2 text-sm text-gray-600 line-clamp-2">{entry.content}</p>
-          )}
+          {/* Content preview */}
+          <p className="mt-2 text-sm text-gray-600 line-clamp-2">{entry.content}</p>
 
           {/* Tags */}
           {entry.tags.length > 0 && (
@@ -189,7 +204,68 @@ function EntryCard({ entry }: { entry: PublicEntry }) {
               ))}
             </div>
           )}
+
+          {/* Code snippets indicator */}
+          {entry.snippets && entry.snippets.length > 0 && (
+            <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-gray-500">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+              </svg>
+              {entry.snippets.length} code snippet{entry.snippets.length > 1 ? 's' : ''}
+            </div>
+          )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Snippet card ────────────────────────────────────────────────────────────
+
+function SnippetCard({ snippet }: { snippet: PublicSnippet }) {
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <div className="flex items-center gap-2 min-w-0">
+          <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+          </svg>
+          <span className="font-medium text-sm text-gray-900 truncate">{snippet.title}</span>
+        </div>
+        <span className="text-[10px] uppercase tracking-wide font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded shrink-0 ml-2">
+          {snippet.language}
+        </span>
+      </div>
+
+      {/* Code */}
+      <div className="bg-gray-900">
+        <pre className="p-4 overflow-x-auto text-xs leading-relaxed">
+          <code className="text-gray-100">
+            {snippet.code.length > 300 ? snippet.code.slice(0, 300) + '\n...' : snippet.code}
+          </code>
+        </pre>
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-t border-gray-100">
+        <div className="flex items-center gap-2">
+          <Link to={`/${snippet.user.username}`} className="flex items-center gap-1.5 group">
+            {snippet.user.avatar ? (
+              <img src={snippet.user.avatar} alt={snippet.user.name} className="w-5 h-5 rounded-full object-cover" />
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-[10px] font-bold text-white">
+                {snippet.user.name[0]?.toUpperCase()}
+              </div>
+            )}
+            <span className="text-xs text-gray-500 group-hover:text-primary-600 transition-colors">
+              @{snippet.user.username}
+            </span>
+          </Link>
+        </div>
+        <time className="text-xs text-gray-400">
+          {new Date(snippet.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+        </time>
       </div>
     </div>
   );
@@ -205,6 +281,12 @@ export default function Landing() {
   const { data, isLoading, error } = useQuery<PaginatedResponse>({
     queryKey: ['entries', 'public', 'landing'],
     queryFn: () => entriesApi.getAll({ limit: 50 }).then((r) => r.data),
+  });
+
+  // Fetch public snippets
+  const { data: publicSnippets } = useQuery<PublicSnippet[]>({
+    queryKey: ['snippets', 'public', 'landing'],
+    queryFn: () => snippetsApi.getPublic().then((r) => r.data),
   });
 
   // Fetch popular tags
@@ -393,6 +475,23 @@ export default function Landing() {
               )}
             </div>
             </div>
+
+            {/* Public Snippets */}
+            {publicSnippets && publicSnippets.length > 0 && (
+              <div className="mt-10">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                  <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+                  </svg>
+                  Community Snippets
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {publicSnippets.map((snippet) => (
+                    <SnippetCard key={snippet.id} snippet={snippet} />
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>

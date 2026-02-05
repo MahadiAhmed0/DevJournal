@@ -21,6 +21,15 @@ interface EntryUser {
   avatar: string | null;
 }
 
+interface Snippet {
+  id: string;
+  title: string;
+  code: string;
+  language: string;
+  description: string | null;
+  createdAt: string;
+}
+
 interface PublicEntry {
   id: string;
   title: string;
@@ -31,6 +40,7 @@ interface PublicEntry {
   createdAt: string;
   updatedAt: string;
   tags: Tag[];
+  snippets: Snippet[];
   user?: EntryUser;
 }
 
@@ -219,6 +229,47 @@ export default function PublicEntryDetail() {
                 <ReactMarkdown>{entry.content}</ReactMarkdown>
               </div>
             </div>
+
+            {/* Code Snippets */}
+            {entry.snippets && entry.snippets.length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                  <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+                  </svg>
+                  Code Snippets ({entry.snippets.length})
+                </h2>
+                <div className="space-y-4">
+                  {entry.snippets.map((snippet) => (
+                    <div
+                      key={snippet.id}
+                      className="rounded-lg border border-gray-200 overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between px-4 py-2.5 bg-gray-800 border-b border-gray-700">
+                        <span className="text-sm font-medium text-gray-200 truncate">
+                          {snippet.title}
+                        </span>
+                        <span className="text-xs uppercase tracking-wide text-gray-400 bg-gray-700 px-2 py-0.5 rounded shrink-0 ml-3">
+                          {snippet.language}
+                        </span>
+                      </div>
+                      {snippet.description && (
+                        <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 text-sm text-gray-600">
+                          {snippet.description}
+                        </div>
+                      )}
+                      <div className="bg-gray-900">
+                        <pre className="p-4 overflow-x-auto text-sm leading-relaxed">
+                          <code className={`language-${snippet.language} text-gray-100`}>
+                            {snippet.code}
+                          </code>
+                        </pre>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Owner actions */}
             {isOwner && (

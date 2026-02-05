@@ -11,6 +11,15 @@ export interface Tag {
   createdAt: string;
 }
 
+export interface Snippet {
+  id: string;
+  title: string;
+  code: string;
+  language: string;
+  description: string | null;
+  createdAt: string;
+}
+
 export interface Entry {
   id: string;
   title: string;
@@ -19,6 +28,7 @@ export interface Entry {
   isPublic: boolean;
   userId: string;
   tags: Tag[];
+  snippets: Snippet[];
   createdAt: string;
   updatedAt: string;
 }

@@ -19,8 +19,8 @@ export class GeminiService implements OnModuleInit {
     }
 
     this.genAI = new GoogleGenerativeAI(apiKey);
-    // Using gemini-1.5-flash for fast, efficient text summarization
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    // Using gemini-2.5-flash for fast, efficient text summarization
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     this.logger.log('Gemini AI service initialized');
   }
 
