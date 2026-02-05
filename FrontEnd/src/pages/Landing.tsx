@@ -273,9 +273,12 @@ function SnippetCard({ snippet }: { snippet: PublicSnippet }) {
 
 // ─── Landing page ────────────────────────────────────────────────────────────
 
+const ENTRIES_PER_PAGE = 10;
+
 export default function Landing() {
   const { user } = useAuth();
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   // Fetch all public entries (large limit to get them all for client-side scoring)
   const { data, isLoading, error } = useQuery<PaginatedResponse>({
@@ -316,6 +319,19 @@ export default function Landing() {
     }
     return [...filtered].sort((a, b) => computeScore(b) - computeScore(a));
   }, [data, selectedTag]);
+
+  // Pagination
+  const totalPages = Math.ceil(sortedEntries.length / ENTRIES_PER_PAGE);
+  const paginatedEntries = useMemo(() => {
+    const start = (page - 1) * ENTRIES_PER_PAGE;
+    return sortedEntries.slice(start, start + ENTRIES_PER_PAGE);
+  }, [sortedEntries, page]);
+
+  // Reset to page 1 when tag filter changes
+  const handleTagSelect = (tag: string | null) => {
+    setSelectedTag(tag);
+    setPage(1);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -424,7 +440,7 @@ export default function Landing() {
 
             <div className="flex flex-col lg:flex-row gap-8">
             {/* Tag sidebar */}
-            <TagSidebar tags={allTags} selectedTag={selectedTag} onSelect={setSelectedTag} />
+            <TagSidebar tags={allTags} selectedTag={selectedTag} onSelect={handleTagSelect} />
 
             {/* Entries */}
             <div className="flex-1 min-w-0" style={{ minHeight: '400px' }}>
@@ -461,16 +477,45 @@ export default function Landing() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {sortedEntries.map((entry) => (
+                  {paginatedEntries.map((entry) => (
                     <EntryCard key={entry.id} entry={entry} />
                   ))}
                 </div>
               )}
 
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <button
+                    onClick={() => {
+                      setPage((p) => Math.max(1, p - 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    disabled={page === 1}
+                    className="px-3 py-1.5 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    Page {page} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => {
+                      setPage((p) => Math.min(totalPages, p + 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    disabled={page === totalPages}
+                    className="px-3 py-1.5 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+
               {/* Total count */}
               {sortedEntries.length > 0 && (
-                <p className="mt-6 text-center text-xs text-gray-400">
-                  Showing {sortedEntries.length} public {sortedEntries.length === 1 ? 'entry' : 'entries'}
+                <p className="mt-4 text-center text-xs text-gray-400">
+                  Showing {paginatedEntries.length} of {sortedEntries.length} public {sortedEntries.length === 1 ? 'entry' : 'entries'}
                 </p>
               )}
             </div>
