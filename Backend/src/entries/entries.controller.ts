@@ -8,6 +8,7 @@ import {
   Param,
   Query,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,6 +18,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { User } from '@prisma/client';
+import { Request } from 'express';
 import { EntriesService } from './entries.service';
 import {
   CreateEntryDto,
@@ -27,11 +29,15 @@ import {
 } from './dto';
 import { SupabaseAuthGuard } from '../auth/guards';
 import { CurrentPrismaUser } from '../auth/decorators';
+import { SupabaseService } from '../common/supabase/supabase.service';
 
 @ApiTags('Entries')
 @Controller('entries')
 export class EntriesController {
-  constructor(private readonly entriesService: EntriesService) {}
+  constructor(
+    private readonly entriesService: EntriesService,
+    private readonly supabaseService: SupabaseService,
+  ) {}
 
   @Post()
   @UseGuards(SupabaseAuthGuard)
@@ -60,19 +66,32 @@ export class EntriesController {
   }
 
   @Get(':id')
-  @UseGuards(SupabaseAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get entry by ID (own or public)' })
+  @ApiOperation({ summary: 'Get entry by ID (public entries visible to all, private only to owner)' })
   @ApiParam({ name: 'id', description: 'Entry UUID' })
   @ApiResponse({ status: 200, description: 'Entry found', type: EntryResponseDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Entry not found' })
   async findOne(
     @Param('id') id: string,
-    @CurrentPrismaUser() user: User,
+    @Req() req: Request,
   ): Promise<EntryResponseDto> {
-    return this.entriesService.findOne(id, user.id);
+    // Try to get user from token if provided (optional auth)
+    let userId: string | null = null;
+    const authHeader = req.headers.authorization;
+    
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const supabase = this.supabaseService.getClient();
+        const { data } = await supabase.auth.getUser(token);
+        if (data.user) {
+          userId = data.user.id;
+        }
+      } catch {
+        // Token invalid or expired - proceed as unauthenticated
+      }
+    }
+
+    return this.entriesService.findOne(id, userId);
   }
 
   @Patch(':id')

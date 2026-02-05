@@ -58,7 +58,7 @@ export class EntriesService {
     };
   }
 
-  async findOne(id: string, userId: string) {
+  async findOne(id: string, userId?: string | null) {
     const entry = await this.prisma.entry.findUnique({
       where: { id },
     });
@@ -67,9 +67,15 @@ export class EntriesService {
       throw new NotFoundException('Entry not found');
     }
 
-    // Allow access if entry is public or belongs to the user
-    if (!entry.isPublic && entry.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this entry');
+    // Public entries are visible to anyone
+    if (entry.isPublic) {
+      return entry;
+    }
+
+    // Private entries: only the owner can view
+    if (!userId || entry.userId !== userId) {
+      // Return 404 to not reveal existence of private entries
+      throw new NotFoundException('Entry not found');
     }
 
     return entry;
