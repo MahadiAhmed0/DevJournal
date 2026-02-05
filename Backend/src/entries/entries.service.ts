@@ -21,6 +21,16 @@ export class EntriesService {
       },
       include: {
         tags: true,
+        snippets: {
+          select: {
+            id: true,
+            title: true,
+            code: true,
+            language: true,
+            description: true,
+            createdAt: true,
+          },
+        },
       },
     });
   }
@@ -50,6 +60,16 @@ export class EntriesService {
         orderBy: { createdAt: 'desc' },
         include: {
           tags: true,
+          snippets: {
+            select: {
+              id: true,
+              title: true,
+              code: true,
+              language: true,
+              description: true,
+              createdAt: true,
+            },
+          },
         },
       }),
       this.prisma.entry.count({ where }),
@@ -69,6 +89,16 @@ export class EntriesService {
       where: { id },
       include: {
         tags: true,
+        snippets: {
+          select: {
+            id: true,
+            title: true,
+            code: true,
+            language: true,
+            description: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
@@ -120,6 +150,16 @@ export class EntriesService {
       },
       include: {
         tags: true,
+        snippets: {
+          select: {
+            id: true,
+            title: true,
+            code: true,
+            language: true,
+            description: true,
+            createdAt: true,
+          },
+        },
       },
     });
   }
@@ -141,6 +181,17 @@ export class EntriesService {
       where: { id },
       include: {
         tags: true,
+        snippets: {
+          where: { isPublic: true },
+          select: {
+            id: true,
+            title: true,
+            code: true,
+            language: true,
+            description: true,
+            createdAt: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -188,6 +239,17 @@ export class EntriesService {
         orderBy: { createdAt: 'desc' },
         include: {
           tags: true,
+          snippets: {
+            where: { isPublic: true },
+            select: {
+              id: true,
+              title: true,
+              code: true,
+              language: true,
+              description: true,
+              createdAt: true,
+            },
+          },
         },
       }),
       this.prisma.entry.count({ where }),
@@ -219,6 +281,17 @@ export class EntriesService {
         orderBy: { createdAt: 'desc' },
         include: {
           tags: true,
+          snippets: {
+            where: { isPublic: true },
+            select: {
+              id: true,
+              title: true,
+              code: true,
+              language: true,
+              description: true,
+              createdAt: true,
+            },
+          },
           user: {
             select: {
               id: true,
@@ -264,6 +337,17 @@ export class EntriesService {
         orderBy: { createdAt: 'desc' },
         include: {
           tags: true,
+          snippets: {
+            where: { isPublic: true },
+            select: {
+              id: true,
+              title: true,
+              code: true,
+              language: true,
+              description: true,
+              createdAt: true,
+            },
+          },
           user: {
             select: {
               id: true,
