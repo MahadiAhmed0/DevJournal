@@ -4,7 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateSnippetDto, UpdateSnippetDto } from './dto';
+import { CreateSnippetDto, UpdateSnippetDto, QuerySnippetDto } from './dto';
 
 @Injectable()
 export class SnippetsService {
@@ -54,9 +54,23 @@ export class SnippetsService {
     });
   }
 
-  async findAllPublic() {
+  async findAllPublic(query: QuerySnippetDto = {}) {
+    const where: any = { isPublic: true };
+
+    // Filter by language
+    if (query.language) {
+      where.language = query.language.toLowerCase();
+    }
+
+    // Filter by username
+    if (query.user) {
+      where.user = {
+        username: query.user,
+      };
+    }
+
     return this.prisma.codeSnippet.findMany({
-      where: { isPublic: true },
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         entry: {

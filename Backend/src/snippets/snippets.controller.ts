@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   Req,
 } from '@nestjs/common';
@@ -15,11 +16,12 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { Request } from 'express';
 import { SnippetsService } from './snippets.service';
-import { CreateSnippetDto, UpdateSnippetDto } from './dto';
+import { CreateSnippetDto, UpdateSnippetDto, QuerySnippetDto } from './dto';
 import { SupabaseAuthGuard } from '../auth/guards';
 import { CurrentPrismaUser } from '../auth/decorators';
 import { SupabaseService } from '../common/supabase/supabase.service';
@@ -46,10 +48,12 @@ export class SnippetsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all public snippets' })
+  @ApiOperation({ summary: 'Get all public snippets with optional filters' })
+  @ApiQuery({ name: 'language', required: false, description: 'Filter by programming language (e.g., typescript, python)' })
+  @ApiQuery({ name: 'user', required: false, description: 'Filter by username' })
   @ApiResponse({ status: 200, description: 'List of public snippets' })
-  async findAllPublic() {
-    return this.snippetsService.findAllPublic();
+  async findAllPublic(@Query() query: QuerySnippetDto) {
+    return this.snippetsService.findAllPublic(query);
   }
 
   @Get('my')
