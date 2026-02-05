@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { EntriesModule } from './entries/entries.module';
 import { TagsModule } from './tags/tags.module';
 import { SnippetsModule } from './snippets/snippets.module';
+import { AiModule } from './ai/ai.module';
 
 
 @Module({
@@ -24,6 +25,7 @@ import { SnippetsModule } from './snippets/snippets.module';
     EntriesModule,
     TagsModule,
     SnippetsModule,
+    AiModule,
 
   ],
   controllers: [],
