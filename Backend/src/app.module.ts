@@ -7,6 +7,7 @@ import { SupabaseModule } from './common/supabase/supabase.module';
 import { UsersModule } from './users/users.module';
 import { EntriesModule } from './entries/entries.module';
 import { TagsModule } from './tags/tags.module';
+import { SnippetsModule } from './snippets/snippets.module';
 
 
 @Module({
@@ -22,6 +23,7 @@ import { TagsModule } from './tags/tags.module';
     UsersModule,
     EntriesModule,
     TagsModule,
+    SnippetsModule,
 
   ],
   controllers: [],

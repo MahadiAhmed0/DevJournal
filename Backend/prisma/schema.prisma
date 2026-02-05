@@ -23,7 +23,8 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  entries Entry[]
+  entries  Entry[]
+  snippets CodeSnippet[]
 
   @@map("users")
 }
@@ -38,8 +39,9 @@ model Entry {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tags Tag[]
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags     Tag[]
+  snippets CodeSnippet[]
 
   @@index([userId])
   @@index([isPublic])
