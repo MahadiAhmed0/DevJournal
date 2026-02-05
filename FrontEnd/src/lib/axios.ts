@@ -78,12 +78,29 @@ export const entriesApi = {
 };
 
 export const snippetsApi = {
-  getAll: () => api.get('/snippets'),
+  getPublic: (params?: { language?: string; user?: string }) =>
+    api.get('/snippets', { params }),
+  getMy: () => api.get('/snippets/my'),
   getOne: (id: string) => api.get(`/snippets/${id}`),
-  create: (data: { title: string; code: string; language: string; description?: string; tags?: string[] }) =>
-    api.post('/snippets', data),
-  update: (id: string, data: { title?: string; code?: string; language?: string; description?: string; tags?: string[] }) =>
-    api.patch(`/snippets/${id}`, data),
+  create: (data: {
+    title: string;
+    code: string;
+    language: string;
+    description?: string;
+    isPublic?: boolean;
+    entryId?: string;
+  }) => api.post('/snippets', data),
+  update: (
+    id: string,
+    data: {
+      title?: string;
+      code?: string;
+      language?: string;
+      description?: string;
+      isPublic?: boolean;
+      entryId?: string | null;
+    },
+  ) => api.patch(`/snippets/${id}`, data),
   delete: (id: string) => api.delete(`/snippets/${id}`),
 };
 

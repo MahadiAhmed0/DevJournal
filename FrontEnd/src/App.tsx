@@ -8,6 +8,7 @@ import Entries from '@/pages/Entries';
 import EntryForm from '@/pages/EntryForm';
 import EntryDetail from '@/pages/EntryDetail';
 import Snippets from '@/pages/Snippets';
+import SnippetForm from '@/pages/SnippetForm';
 import SnippetDetail from '@/pages/SnippetDetail';
 import Profile from '@/pages/Profile';
 import PublicProfile from '@/pages/PublicProfile';
@@ -90,7 +91,9 @@ function App() {
         <Route path="entries/:id" element={<EntryDetail />} />
         <Route path="entries/:id/edit" element={<EntryForm />} />
         <Route path="snippets" element={<Snippets />} />
+        <Route path="snippets/new" element={<SnippetForm />} />
         <Route path="snippets/:id" element={<SnippetDetail />} />
+        <Route path="snippets/:id/edit" element={<SnippetForm />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 
