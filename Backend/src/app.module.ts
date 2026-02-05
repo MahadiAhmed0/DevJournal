@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { SupabaseModule } from './common/supabase/supabase.module';
 import { UsersModule } from './users/users.module';
 import { EntriesModule } from './entries/entries.module';
+import { TagsModule } from './tags/tags.module';
 
 
 @Module({
@@ -20,6 +21,7 @@ import { EntriesModule } from './entries/entries.module';
     AuthModule,
     UsersModule,
     EntriesModule,
+    TagsModule,
 
   ],
   controllers: [],

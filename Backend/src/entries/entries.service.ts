@@ -19,6 +19,9 @@ export class EntriesService {
         isPublic: createEntryDto.isPublic ?? false,
         userId,
       },
+      include: {
+        tags: true,
+      },
     });
   }
 
@@ -45,6 +48,9 @@ export class EntriesService {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        include: {
+          tags: true,
+        },
       }),
       this.prisma.entry.count({ where }),
     ]);
@@ -61,6 +67,9 @@ export class EntriesService {
   async findOne(id: string, userId?: string | null) {
     const entry = await this.prisma.entry.findUnique({
       where: { id },
+      include: {
+        tags: true,
+      },
     });
 
     if (!entry) {
@@ -109,6 +118,9 @@ export class EntriesService {
         summary: updateEntryDto.summary,
         isPublic: updateEntryDto.isPublic,
       },
+      include: {
+        tags: true,
+      },
     });
   }
 
@@ -128,6 +140,7 @@ export class EntriesService {
     const entry = await this.prisma.entry.findUnique({
       where: { id },
       include: {
+        tags: true,
         user: {
           select: {
             id: true,
@@ -173,6 +186,9 @@ export class EntriesService {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        include: {
+          tags: true,
+        },
       }),
       this.prisma.entry.count({ where }),
     ]);
