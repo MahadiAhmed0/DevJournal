@@ -63,14 +63,18 @@ export default api;
 
 // API endpoints
 export const entriesApi = {
-  getAll: () => api.get('/entries'),
+  getAll: (params?: { page?: number; limit?: number; search?: string; isPublic?: boolean }) =>
+    api.get('/entries', { params }),
+  getMy: (params?: { page?: number; limit?: number }) =>
+    api.get('/entries/my', { params }),
   getOne: (id: string) => api.get(`/entries/${id}`),
-  create: (data: { title: string; content: string; isPublic?: boolean; tags?: string[] }) =>
+  create: (data: { title: string; content: string; summary?: string; isPublic?: boolean }) =>
     api.post('/entries', data),
-  update: (id: string, data: { title?: string; content?: string; isPublic?: boolean; tags?: string[] }) =>
+  update: (id: string, data: { title?: string; content?: string; summary?: string; isPublic?: boolean }) =>
     api.patch(`/entries/${id}`, data),
   delete: (id: string) => api.delete(`/entries/${id}`),
   summarize: (id: string) => api.post(`/entries/${id}/summarize`),
+  search: (q: string) => api.get('/entries/search', { params: { q } }),
 };
 
 export const snippetsApi = {

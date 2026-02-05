@@ -5,6 +5,7 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Dashboard from '@/pages/Dashboard';
 import Entries from '@/pages/Entries';
+import EntryForm from '@/pages/EntryForm';
 import EntryDetail from '@/pages/EntryDetail';
 import Snippets from '@/pages/Snippets';
 import SnippetDetail from '@/pages/SnippetDetail';
@@ -85,7 +86,9 @@ function App() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="entries" element={<Entries />} />
+        <Route path="entries/new" element={<EntryForm />} />
         <Route path="entries/:id" element={<EntryDetail />} />
+        <Route path="entries/:id/edit" element={<EntryForm />} />
         <Route path="snippets" element={<Snippets />} />
         <Route path="snippets/:id" element={<SnippetDetail />} />
         <Route path="profile" element={<Profile />} />
