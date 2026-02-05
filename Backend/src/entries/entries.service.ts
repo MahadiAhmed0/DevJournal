@@ -21,6 +21,16 @@ export class EntriesService {
       },
       include: {
         tags: true,
+        snippets: {
+          select: {
+            id: true,
+            title: true,
+            code: true,
+            language: true,
+            description: true,
+            createdAt: true,
+          },
+        },
       },
     });
   }
@@ -50,6 +60,16 @@ export class EntriesService {
         orderBy: { createdAt: 'desc' },
         include: {
           tags: true,
+          snippets: {
+            select: {
+              id: true,
+              title: true,
+              code: true,
+              language: true,
+              description: true,
+              createdAt: true,
+            },
+          },
         },
       }),
       this.prisma.entry.count({ where }),
@@ -69,6 +89,16 @@ export class EntriesService {
       where: { id },
       include: {
         tags: true,
+        snippets: {
+          select: {
+            id: true,
+            title: true,
+            code: true,
+            language: true,
+            description: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
@@ -120,6 +150,16 @@ export class EntriesService {
       },
       include: {
         tags: true,
+        snippets: {
+          select: {
+            id: true,
+            title: true,
+            code: true,
+            language: true,
+            description: true,
+            createdAt: true,
+          },
+        },
       },
     });
   }
@@ -135,12 +175,46 @@ export class EntriesService {
     return { message: 'Entry deleted successfully' };
   }
 
+  async updateSummary(id: string, userId: string, summary: string) {
+    // Verify ownership
+    await this.findOneOwned(id, userId);
+
+    return this.prisma.entry.update({
+      where: { id },
+      data: { summary },
+      include: {
+        tags: true,
+        snippets: {
+          select: {
+            id: true,
+            title: true,
+            code: true,
+            language: true,
+            description: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+  }
+
   // Public access - for public entries only
   async findPublicEntry(id: string) {
     const entry = await this.prisma.entry.findUnique({
       where: { id },
       include: {
         tags: true,
+        snippets: {
+          where: { isPublic: true },
+          select: {
+            id: true,
+            title: true,
+            code: true,
+            language: true,
+            description: true,
+            createdAt: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -188,6 +262,17 @@ export class EntriesService {
         orderBy: { createdAt: 'desc' },
         include: {
           tags: true,
+          snippets: {
+            where: { isPublic: true },
+            select: {
+              id: true,
+              title: true,
+              code: true,
+              language: true,
+              description: true,
+              createdAt: true,
+            },
+          },
         },
       }),
       this.prisma.entry.count({ where }),
@@ -219,6 +304,17 @@ export class EntriesService {
         orderBy: { createdAt: 'desc' },
         include: {
           tags: true,
+          snippets: {
+            where: { isPublic: true },
+            select: {
+              id: true,
+              title: true,
+              code: true,
+              language: true,
+              description: true,
+              createdAt: true,
+            },
+          },
           user: {
             select: {
               id: true,
@@ -264,6 +360,17 @@ export class EntriesService {
         orderBy: { createdAt: 'desc' },
         include: {
           tags: true,
+          snippets: {
+            where: { isPublic: true },
+            select: {
+              id: true,
+              title: true,
+              code: true,
+              language: true,
+              description: true,
+              createdAt: true,
+            },
+          },
           user: {
             select: {
               id: true,

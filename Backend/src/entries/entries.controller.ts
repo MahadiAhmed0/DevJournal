@@ -31,6 +31,7 @@ import {
 import { SupabaseAuthGuard } from '../auth/guards';
 import { CurrentPrismaUser } from '../auth/decorators';
 import { SupabaseService } from '../common/supabase/supabase.service';
+import { GeminiService } from '../ai/gemini.service';
 
 @ApiTags('Entries')
 @Controller('entries')
@@ -38,6 +39,7 @@ export class EntriesController {
   constructor(
     private readonly entriesService: EntriesService,
     private readonly supabaseService: SupabaseService,
+    private readonly geminiService: GeminiService,
   ) {}
 
   @Get()
@@ -144,5 +146,28 @@ export class EntriesController {
     @CurrentPrismaUser() user: User,
   ) {
     return this.entriesService.remove(id, user.id);
+  }
+
+  @Post(':id/summarize')
+  @UseGuards(SupabaseAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Generate and save AI summary for an entry' })
+  @ApiParam({ name: 'id', description: 'Entry UUID' })
+  @ApiResponse({ status: 200, description: 'Summary generated and saved', type: EntryResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - not your entry' })
+  @ApiResponse({ status: 404, description: 'Entry not found' })
+  async summarize(
+    @Param('id') id: string,
+    @CurrentPrismaUser() user: User,
+  ): Promise<EntryResponseDto> {
+    // Verify ownership and get entry
+    const entry = await this.entriesService.findOneOwned(id, user.id);
+
+    // Generate summary using Gemini
+    const summary = await this.geminiService.generateSummary(entry.content);
+
+    // Save summary to entry and return updated entry
+    return this.entriesService.updateSummary(id, user.id, summary);
   }
 }
