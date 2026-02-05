@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { usersApi } from '@/lib/axios';
 import { queryKeys } from '@/lib/queryClient';
 import { LANGUAGE_LABELS, getPrismLanguage } from '@/hooks/useSnippets';
+import { useAuth } from '@/context/AuthContext';
 import Prism from 'prismjs';
 import { useEffect, useRef, useState } from 'react';
 
@@ -131,6 +132,7 @@ function SnippetPreview({ snippet }: { snippet: PublicSnippet }) {
 
 export default function PublicProfile() {
   const { username } = useParams<{ username: string }>();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'entries' | 'snippets'>('entries');
 
   const { data: profile, isLoading, error } = useQuery<PublicProfile>({
@@ -182,9 +184,26 @@ export default function PublicProfile() {
           <Link to="/" className="text-lg font-bold text-primary-600">
             DevJournal
           </Link>
-          <Link to="/login" className="text-sm text-gray-500 hover:text-gray-700">
-            Sign in
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => window.history.back()}
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              &larr; Back
+            </button>
+            {user ? (
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <Link to="/login" className="text-sm text-gray-500 hover:text-gray-700">
+                Sign in
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
@@ -325,9 +344,11 @@ export default function PublicProfile() {
                     key={entry.id}
                     className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow"
                   >
-                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
-                      {entry.title}
-                    </h3>
+                    <Link to={`/entry/${entry.id}`}>
+                      <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 hover:text-primary-600 transition-colors">
+                        {entry.title}
+                      </h3>
+                    </Link>
                     <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                       <time>{new Date(entry.createdAt).toLocaleDateString()}</time>
                       {entry.summary && (

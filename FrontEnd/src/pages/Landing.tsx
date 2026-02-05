@@ -62,7 +62,7 @@ function TagSidebar({
   onSelect: (tag: string | null) => void;
 }) {
   return (
-    <aside className="w-full lg:w-64 shrink-0">
+    <aside className="w-full lg:w-64 lg:min-w-[16rem] shrink-0">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 sticky top-24">
         <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">
           Filter by Tag
@@ -120,28 +120,32 @@ function EntryCard({ entry }: { entry: PublicEntry }) {
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start gap-3">
         {/* Author avatar */}
-        {entry.user.avatar ? (
-          <img
-            src={entry.user.avatar}
-            alt={entry.user.name}
-            className="w-10 h-10 rounded-full object-cover shrink-0"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-sm font-bold text-white shrink-0">
-            {entry.user.name[0]?.toUpperCase()}
-          </div>
-        )}
+        <Link to={`/${entry.user.username}`} className="shrink-0">
+          {entry.user.avatar ? (
+            <img
+              src={entry.user.avatar}
+              alt={entry.user.name}
+              className="w-10 h-10 rounded-full object-cover hover:ring-2 hover:ring-primary-300 transition-shadow"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-sm font-bold text-white hover:ring-2 hover:ring-primary-300 transition-shadow">
+              {entry.user.name[0]?.toUpperCase()}
+            </div>
+          )}
+        </Link>
 
         <div className="min-w-0 flex-1">
           {/* Title */}
-          <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
-            {entry.title}
-          </h3>
+          <Link to={`/entry/${entry.id}`} className="block">
+            <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 hover:text-primary-600 transition-colors">
+              {entry.title}
+            </h3>
+          </Link>
 
           {/* Author + date */}
           <div className="flex items-center gap-2 mt-0.5 text-sm text-gray-500">
             <Link
-              to={`/u/${entry.user.username}`}
+              to={`/${entry.user.username}`}
               className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
             >
               @{entry.user.username}
@@ -341,7 +345,7 @@ export default function Landing() {
             <TagSidebar tags={allTags} selectedTag={selectedTag} onSelect={setSelectedTag} />
 
             {/* Entries */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0" style={{ minHeight: '400px' }}>
               {/* Active filter indicator */}
               {selectedTag && (
                 <div className="mb-4 flex items-center gap-2 text-sm text-gray-600">

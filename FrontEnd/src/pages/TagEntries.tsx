@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { tagsApi } from '@/lib/axios';
 import { queryKeys } from '@/lib/queryClient';
+import { useAuth } from '@/context/AuthContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -46,26 +47,30 @@ function EntryCard({ entry }: { entry: PublicEntry }) {
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start gap-3">
         {/* Author avatar */}
-        {entry.user.avatar ? (
-          <img
-            src={entry.user.avatar}
-            alt={entry.user.name}
-            className="w-10 h-10 rounded-full object-cover shrink-0"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-sm font-bold text-white shrink-0">
-            {entry.user.name[0]?.toUpperCase()}
-          </div>
-        )}
+        <Link to={`/${entry.user.username}`} className="shrink-0">
+          {entry.user.avatar ? (
+            <img
+              src={entry.user.avatar}
+              alt={entry.user.name}
+              className="w-10 h-10 rounded-full object-cover hover:ring-2 hover:ring-primary-300 transition-shadow"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-sm font-bold text-white hover:ring-2 hover:ring-primary-300 transition-shadow">
+              {entry.user.name[0]?.toUpperCase()}
+            </div>
+          )}
+        </Link>
 
         <div className="min-w-0 flex-1">
           {/* Title */}
-          <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">{entry.title}</h3>
+          <Link to={`/entry/${entry.id}`} className="block">
+            <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 hover:text-primary-600 transition-colors">{entry.title}</h3>
+          </Link>
 
           {/* Author + date */}
           <div className="flex items-center gap-2 mt-0.5 text-sm text-gray-500">
             <Link
-              to={`/u/${entry.user.username}`}
+              to={`/${entry.user.username}`}
               className="font-medium text-gray-700 hover:text-primary-600 transition-colors"
             >
               @{entry.user.username}
@@ -119,6 +124,7 @@ function EntryCard({ entry }: { entry: PublicEntry }) {
 
 export default function TagEntries() {
   const { slug } = useParams<{ slug: string }>();
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
 
   const { data, isLoading, error } = useQuery<TagEntriesResponse>({
@@ -135,9 +141,26 @@ export default function TagEntries() {
           <Link to="/" className="text-xl font-bold text-primary-600">
             DevJournal
           </Link>
-          <Link to="/" className="text-sm text-gray-500 hover:text-gray-700">
-            &larr; Back to Home
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => window.history.back()}
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              &larr; Back
+            </button>
+            {user ? (
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <Link to="/login" className="text-sm text-gray-500 hover:text-gray-700">
+                Sign in
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
