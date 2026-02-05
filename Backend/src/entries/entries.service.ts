@@ -175,6 +175,29 @@ export class EntriesService {
     return { message: 'Entry deleted successfully' };
   }
 
+  async updateSummary(id: string, userId: string, summary: string) {
+    // Verify ownership
+    await this.findOneOwned(id, userId);
+
+    return this.prisma.entry.update({
+      where: { id },
+      data: { summary },
+      include: {
+        tags: true,
+        snippets: {
+          select: {
+            id: true,
+            title: true,
+            code: true,
+            language: true,
+            description: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+  }
+
   // Public access - for public entries only
   async findPublicEntry(id: string) {
     const entry = await this.prisma.entry.findUnique({
