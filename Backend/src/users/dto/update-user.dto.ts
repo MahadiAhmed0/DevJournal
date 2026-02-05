@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsUrl, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsUrl, MaxLength, MinLength, Matches } from 'class-validator';
 
 export class UpdateUserDto {
   @ApiProperty({ example: 'John Doe', required: false })
@@ -7,6 +7,14 @@ export class UpdateUserDto {
   @IsOptional()
   @MaxLength(100)
   name?: string;
+
+  @ApiProperty({ example: 'johndoe', required: false, description: 'Unique username (3-30 chars, alphanumeric and underscores only)' })
+  @IsString()
+  @IsOptional()
+  @MinLength(3)
+  @MaxLength(30)
+  @Matches(/^[a-zA-Z0-9_]+$/, { message: 'Username can only contain letters, numbers, and underscores' })
+  username?: string;
 
   @ApiProperty({ example: 'https://example.com/avatar.jpg', required: false })
   @IsString()
