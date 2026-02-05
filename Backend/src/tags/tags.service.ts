@@ -212,4 +212,126 @@ export class TagsService {
       orderBy: { name: 'asc' },
     });
   }
+
+  /**
+   * Create a new tag directly.
+   */
+  async createTag(name: string) {
+    const normalizedName = name.toLowerCase().trim();
+
+    // Check if tag already exists
+    const existing = await this.prisma.tag.findUnique({
+      where: { name: normalizedName },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    return this.prisma.tag.create({
+      data: { name: normalizedName },
+    });
+  }
+
+  /**
+   * Get tag by name (slug).
+   */
+  async findByName(name: string) {
+    const tag = await this.prisma.tag.findUnique({
+      where: { name: name.toLowerCase().trim() },
+      include: {
+        _count: {
+          select: { entries: true },
+        },
+      },
+    });
+
+    if (!tag) {
+      throw new NotFoundException(`Tag '${name}' not found`);
+    }
+
+    return {
+      id: tag.id,
+      name: tag.name,
+      createdAt: tag.createdAt,
+      entryCount: tag._count.entries,
+    };
+  }
+
+  /**
+   * Get public entries for a tag.
+   */
+  async getEntriesByTagName(name: string, page = 1, limit = 10) {
+    const normalizedName = name.toLowerCase().trim();
+
+    // Check tag exists
+    const tag = await this.prisma.tag.findUnique({
+      where: { name: normalizedName },
+    });
+
+    if (!tag) {
+      throw new NotFoundException(`Tag '${name}' not found`);
+    }
+
+    const skip = (page - 1) * limit;
+
+    const where = {
+      isPublic: true,
+      tags: {
+        some: { name: normalizedName },
+      },
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.entry.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          tags: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
+      }),
+      this.prisma.entry.count({ where }),
+    ]);
+
+    return {
+      tag: {
+        id: tag.id,
+        name: tag.name,
+      },
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  /**
+   * Delete a tag (admin/owner functionality).
+   */
+  async deleteTag(name: string) {
+    const tag = await this.prisma.tag.findUnique({
+      where: { name: name.toLowerCase().trim() },
+    });
+
+    if (!tag) {
+      throw new NotFoundException(`Tag '${name}' not found`);
+    }
+
+    await this.prisma.tag.delete({
+      where: { id: tag.id },
+    });
+
+    return { message: `Tag '${name}' deleted successfully` };
+  }
 }
