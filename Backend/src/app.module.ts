@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+
 import { AuthModule } from './auth/auth.module';
 import { SupabaseModule } from './common/supabase/supabase.module';
+
 
 @Module({
   imports: [
@@ -9,8 +11,10 @@ import { SupabaseModule } from './common/supabase/supabase.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+
     SupabaseModule,
     AuthModule,
+
   ],
   controllers: [],
   providers: [],
