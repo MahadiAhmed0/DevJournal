@@ -54,6 +54,29 @@ export class SnippetsService {
     });
   }
 
+  async findAllPublic() {
+    return this.prisma.codeSnippet.findMany({
+      where: { isPublic: true },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        entry: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+  }
+
   async findOne(id: string, userId?: string | null) {
     const snippet = await this.prisma.codeSnippet.findUnique({
       where: { id },

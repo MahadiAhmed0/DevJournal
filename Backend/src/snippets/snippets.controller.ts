@@ -45,6 +45,13 @@ export class SnippetsController {
     return this.snippetsService.create(user.id, createSnippetDto);
   }
 
+  @Get()
+  @ApiOperation({ summary: 'Get all public snippets' })
+  @ApiResponse({ status: 200, description: 'List of public snippets' })
+  async findAllPublic() {
+    return this.snippetsService.findAllPublic();
+  }
+
   @Get('my')
   @UseGuards(SupabaseAuthGuard)
   @ApiBearerAuth()
