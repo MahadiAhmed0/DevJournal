@@ -15,7 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { UsersService } from './users.service';
-import { UpdateUserDto, UserResponseDto } from './dto';
+import { UpdateUserDto, UserResponseDto, PublicProfileDto } from './dto';
 import { SupabaseAuthGuard } from '../auth/guards';
 import { CurrentPrismaUser } from '../auth/decorators';
 
@@ -56,6 +56,15 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async findById(@Param('id') id: string): Promise<UserResponseDto> {
     return this.usersService.findById(id);
+  }
+
+  @Get('profile/:username')
+  @ApiOperation({ summary: 'Get public profile by username' })
+  @ApiParam({ name: 'username', description: 'Unique username' })
+  @ApiResponse({ status: 200, description: 'Public profile found', type: PublicProfileDto })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getPublicProfile(@Param('username') username: string): Promise<PublicProfileDto> {
+    return this.usersService.getPublicProfile(username);
   }
 
   @Get('username/:username')

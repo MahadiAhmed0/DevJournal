@@ -142,6 +142,35 @@ export class UsersService {
     return user;
   }
 
+  /**
+   * Get public profile by username - excludes private fields like email
+   * Will include public entries and snippets when those modules are ready
+   */
+  async getPublicProfile(username: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { username },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        avatar: true,
+        bio: true,
+        githubUrl: true,
+        linkedinUrl: true,
+        createdAt: true,
+        // When entries/snippets relations are added:
+        // entries: { where: { isPublic: true } },
+        // snippets: { where: { isPublic: true } },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },
