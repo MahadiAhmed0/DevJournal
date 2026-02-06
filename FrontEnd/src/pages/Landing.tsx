@@ -65,6 +65,14 @@ interface PaginatedResponse {
   totalPages: number;
 }
 
+interface PaginatedSnippetsResponse {
+  data: PublicSnippet[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 // ─── Score calculation ───────────────────────────────────────────────────────
 
 function computeScore(entry: PublicEntry): number {
@@ -287,7 +295,7 @@ export default function Landing() {
   });
 
   // Fetch public snippets
-  const { data: publicSnippets } = useQuery<PublicSnippet[]>({
+  const { data: snippetsData } = useQuery<PaginatedSnippetsResponse>({
     queryKey: ['snippets', 'public', 'landing'],
     queryFn: () => snippetsApi.getPublic().then((r) => r.data),
   });
@@ -327,9 +335,9 @@ export default function Landing() {
 
   // Limit snippets to top
   const topSnippets = useMemo(() => {
-    if (!publicSnippets) return [];
-    return publicSnippets.slice(0, TOP_SNIPPETS_LIMIT);
-  }, [publicSnippets]);
+    if (!snippetsData?.data) return [];
+    return snippetsData.data.slice(0, TOP_SNIPPETS_LIMIT);
+  }, [snippetsData]);
 
   // Reset filter
   const handleTagSelect = (tag: string | null) => {
@@ -503,7 +511,7 @@ export default function Landing() {
                 </div>
 
                 {/* Show More Snippets link */}
-                {publicSnippets && publicSnippets.length > TOP_SNIPPETS_LIMIT && (
+                {snippetsData?.data && snippetsData.data.length > TOP_SNIPPETS_LIMIT && (
                   <div className="mt-6 text-center">
                     <Link
                       to="/explore/snippets"
