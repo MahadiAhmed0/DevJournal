@@ -4,8 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { entriesApi } from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { Prism as SyntaxHighlighterBase } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+// Fix for TypeScript compatibility
+const SyntaxHighlighter = SyntaxHighlighterBase as any;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

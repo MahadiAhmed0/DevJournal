@@ -3,8 +3,11 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { snippetsApi } from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { Prism as SyntaxHighlighterBase } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+// Fix for TypeScript compatibility
+const SyntaxHighlighter = SyntaxHighlighterBase as any;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
