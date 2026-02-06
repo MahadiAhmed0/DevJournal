@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { entriesApi } from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
@@ -252,15 +252,49 @@ function EntryCard({ entry }: { entry: PublicEntry }) {
 
 const ENTRIES_PER_PAGE = 10;
 
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 export default function ExploreJournals() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState(searchParams.get('q') || '');
+  const debouncedSearch = useDebounce(searchInput.trim(), 300);
 
-  // Fetch all public entries
+  // Sync URL with search
+  useEffect(() => {
+    if (debouncedSearch) {
+      setSearchParams({ q: debouncedSearch });
+    } else {
+      setSearchParams({});
+    }
+  }, [debouncedSearch, setSearchParams]);
+
+  // Fetch entries - use search API if searching, otherwise get all
   const { data, isLoading, error } = useQuery<PaginatedResponse>({
-    queryKey: ['entries', 'public', 'explore'],
-    queryFn: () => entriesApi.getAll({ limit: 50 }).then((r) => r.data),
+    queryKey: ['entries', 'public', 'explore', debouncedSearch],
+    queryFn: () => {
+      if (debouncedSearch) {
+        return entriesApi.search(debouncedSearch, { limit: 50 }).then((r) => r.data);
+      }
+      return entriesApi.getAll({ limit: 50 }).then((r) => r.data);
+    },
   });
 
   // Build tag list with counts
@@ -295,6 +329,12 @@ export default function ExploreJournals() {
   // Reset to page 1 when tag filter changes
   const handleTagSelect = (tag: string | null) => {
     setSelectedTag(tag);
+    setPage(1);
+  };
+
+  // Clear search
+  const handleClearSearch = () => {
+    setSearchInput('');
     setPage(1);
   };
 
@@ -348,9 +388,46 @@ export default function ExploreJournals() {
         </nav>
 
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore Journals</h1>
-        <p className="text-gray-600 mb-8">
+        <p className="text-gray-600 mb-6">
           Discover learning journeys and insights from the developer community
         </p>
+
+        {/* Search Bar */}
+        <div className="mb-8">
+          <div className="relative max-w-xl">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search journals by title or content..."
+              value={searchInput}
+              onChange={(e) => {
+                setSearchInput(e.target.value);
+                setPage(1);
+              }}
+              className="w-full pl-11 pr-10 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+            />
+            {searchInput && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {debouncedSearch && (
+            <p className="mt-2 text-sm text-gray-500">
+              Showing results for "<span className="font-medium text-gray-700">{debouncedSearch}</span>"
+              {data?.total !== undefined && ` (${data.total} ${data.total === 1 ? 'result' : 'results'})`}
+            </p>
+          )}
+        </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-16">

@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { snippetsApi } from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
@@ -24,6 +24,14 @@ interface PublicSnippet {
   isPublic: boolean;
   createdAt: string;
   user: SnippetUser;
+}
+
+interface PaginatedSnippetsResponse {
+  data: PublicSnippet[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 // ─── Language filter ─────────────────────────────────────────────────────────
@@ -174,16 +182,47 @@ function SnippetCard({ snippet }: { snippet: PublicSnippet }) {
 
 const SNIPPETS_PER_PAGE = 12;
 
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 export default function ExploreSnippets() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState(searchParams.get('q') || '');
+  const debouncedSearch = useDebounce(searchInput.trim(), 300);
 
-  // Fetch all public snippets
-  const { data: publicSnippets, isLoading, error } = useQuery<PublicSnippet[]>({
-    queryKey: ['snippets', 'public', 'explore'],
-    queryFn: () => snippetsApi.getPublic().then((r) => r.data),
+  // Sync URL with search
+  useEffect(() => {
+    if (debouncedSearch) {
+      setSearchParams({ q: debouncedSearch });
+    } else {
+      setSearchParams({});
+    }
+  }, [debouncedSearch, setSearchParams]);
+
+  // Fetch public snippets with search
+  const { data: snippetsData, isLoading, error } = useQuery<PaginatedSnippetsResponse>({
+    queryKey: ['snippets', 'public', 'explore', debouncedSearch],
+    queryFn: () => snippetsApi.getPublic({ search: debouncedSearch || undefined, limit: 50 }).then((r) => r.data),
   });
+
+  const publicSnippets = snippetsData?.data;
 
   // Build language list with counts
   const languages = useMemo(() => {
@@ -219,6 +258,12 @@ export default function ExploreSnippets() {
   // Reset to page 1 when filter changes
   const handleLanguageSelect = (lang: string | null) => {
     setSelectedLanguage(lang);
+    setPage(1);
+  };
+
+  // Clear search
+  const handleClearSearch = () => {
+    setSearchInput('');
     setPage(1);
   };
 
@@ -272,9 +317,46 @@ export default function ExploreSnippets() {
         </nav>
 
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore Snippets</h1>
-        <p className="text-gray-600 mb-8">
+        <p className="text-gray-600 mb-6">
           Browse code snippets shared by the developer community
         </p>
+
+        {/* Search Bar */}
+        <div className="mb-8">
+          <div className="relative max-w-xl">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search snippets by title, code, or description..."
+              value={searchInput}
+              onChange={(e) => {
+                setSearchInput(e.target.value);
+                setPage(1);
+              }}
+              className="w-full pl-11 pr-10 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+            />
+            {searchInput && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {debouncedSearch && (
+            <p className="mt-2 text-sm text-gray-500">
+              Showing results for "<span className="font-medium text-gray-700">{debouncedSearch}</span>"
+              {snippetsData?.total !== undefined && ` (${snippetsData.total} ${snippetsData.total === 1 ? 'result' : 'results'})`}
+            </p>
+          )}
+        </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
