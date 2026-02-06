@@ -6,9 +6,9 @@ RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
+# Copy package files (paths relative to repo root)
+COPY Backend/package*.json ./
+COPY Backend/prisma ./prisma/
 
 # Install all dependencies (including dev dependencies for build)
 RUN npm ci
@@ -17,7 +17,9 @@ RUN npm ci
 RUN npx prisma generate
 
 # Copy source code
-COPY . .
+COPY Backend/src ./src/
+COPY Backend/tsconfig*.json ./
+COPY Backend/nest-cli.json ./
 
 # Build the application
 RUN npm run build
@@ -31,8 +33,8 @@ RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists
 WORKDIR /app
 
 # Copy package files and prisma
-COPY package*.json ./
-COPY prisma ./prisma/
+COPY Backend/package*.json ./
+COPY Backend/prisma ./prisma/
 
 # Install production dependencies only
 RUN npm ci --omit=dev
