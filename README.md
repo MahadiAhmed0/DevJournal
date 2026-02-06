@@ -177,6 +177,17 @@ VITE_SUPABASE_ANON_KEY="your-supabase-anon-key"
 
 ## 📖 API Documentation
 
+The API is fully documented with **Swagger/OpenAPI**. Access the interactive documentation at:
+
+- **Local**: http://localhost:3000/api
+- **Production**: https://very-austin-mahadi63-98cc9d5a.koyeb.app/api
+
+The Swagger UI provides:
+- Interactive API testing
+- Request/response schemas
+- Authentication support (Bearer token)
+- Try-it-out functionality
+
 ### Authentication
 | Method | Endpoint | Description |
 |--------|----------|-------------|
