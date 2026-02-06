@@ -15,6 +15,8 @@ import Profile from '@/pages/Profile';
 import PublicProfile from '@/pages/PublicProfile';
 import TagEntries from '@/pages/TagEntries';
 import PublicEntryDetail from '@/pages/PublicEntryDetail';
+import ExploreJournals from '@/pages/ExploreJournals';
+import ExploreSnippets from '@/pages/ExploreSnippets';
 
 // Protected route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -77,6 +79,10 @@ function App() {
           </PublicRoute>
         }
       />
+
+      {/* Explore routes */}
+      <Route path="/explore/journals" element={<ExploreJournals />} />
+      <Route path="/explore/snippets" element={<ExploreSnippets />} />
 
       {/* Public profile route */}
       <Route path="/:username" element={<PublicProfile />} />
