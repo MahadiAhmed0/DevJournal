@@ -273,6 +273,9 @@ function SnippetCard({ snippet }: { snippet: PublicSnippet }) {
 
 // ─── Landing page ────────────────────────────────────────────────────────────
 
+const TOP_ENTRIES_LIMIT = 5;
+const TOP_SNIPPETS_LIMIT = 5;
+
 export default function Landing() {
   const { user } = useAuth();
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -316,6 +319,22 @@ export default function Landing() {
     }
     return [...filtered].sort((a, b) => computeScore(b) - computeScore(a));
   }, [data, selectedTag]);
+
+  // Limit to top entries
+  const topEntries = useMemo(() => {
+    return sortedEntries.slice(0, TOP_ENTRIES_LIMIT);
+  }, [sortedEntries]);
+
+  // Limit snippets to top
+  const topSnippets = useMemo(() => {
+    if (!publicSnippets) return [];
+    return publicSnippets.slice(0, TOP_SNIPPETS_LIMIT);
+  }, [publicSnippets]);
+
+  // Reset filter
+  const handleTagSelect = (tag: string | null) => {
+    setSelectedTag(tag);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -363,22 +382,6 @@ export default function Landing() {
             A community of developers sharing their learnings, code snippets, and insights.
             Read public journal entries or create your own.
           </p>
-          {!user && (
-            <div className="mt-6 flex items-center justify-center gap-3">
-              <Link
-                to="/register"
-                className="px-6 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
-              >
-                Get Started
-              </Link>
-              <Link
-                to="/login"
-                className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Sign in
-              </Link>
-            </div>
-          )}
         </div>
       </section>
 
@@ -424,7 +427,7 @@ export default function Landing() {
 
             <div className="flex flex-col lg:flex-row gap-8">
             {/* Tag sidebar */}
-            <TagSidebar tags={allTags} selectedTag={selectedTag} onSelect={setSelectedTag} />
+            <TagSidebar tags={allTags} selectedTag={selectedTag} onSelect={handleTagSelect} />
 
             {/* Entries */}
             <div className="flex-1 min-w-0" style={{ minHeight: '400px' }}>
@@ -447,7 +450,7 @@ export default function Landing() {
                 </div>
               )}
 
-              {sortedEntries.length === 0 ? (
+              {topEntries.length === 0 ? (
                 <div className="text-center py-16 bg-white rounded-lg border border-gray-200">
                   <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
@@ -461,23 +464,31 @@ export default function Landing() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {sortedEntries.map((entry) => (
+                  {topEntries.map((entry) => (
                     <EntryCard key={entry.id} entry={entry} />
                   ))}
                 </div>
               )}
 
-              {/* Total count */}
-              {sortedEntries.length > 0 && (
-                <p className="mt-6 text-center text-xs text-gray-400">
-                  Showing {sortedEntries.length} public {sortedEntries.length === 1 ? 'entry' : 'entries'}
-                </p>
+              {/* Show More link */}
+              {sortedEntries.length > TOP_ENTRIES_LIMIT && (
+                <div className="mt-6 text-center">
+                  <Link
+                    to="/explore/journals"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+                  >
+                    Show More Journals
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </Link>
+                </div>
               )}
             </div>
             </div>
 
             {/* Public Snippets */}
-            {publicSnippets && publicSnippets.length > 0 && (
+            {topSnippets && topSnippets.length > 0 && (
               <div className="mt-10">
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
                   <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -486,10 +497,25 @@ export default function Landing() {
                   Community Snippets
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {publicSnippets.map((snippet) => (
+                  {topSnippets.map((snippet) => (
                     <SnippetCard key={snippet.id} snippet={snippet} />
                   ))}
                 </div>
+
+                {/* Show More Snippets link */}
+                {publicSnippets && publicSnippets.length > TOP_SNIPPETS_LIMIT && (
+                  <div className="mt-6 text-center">
+                    <Link
+                      to="/explore/snippets"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+                    >
+                      Show More Snippets
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
           </>

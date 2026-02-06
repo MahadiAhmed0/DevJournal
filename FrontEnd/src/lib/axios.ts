@@ -74,11 +74,12 @@ export const entriesApi = {
     api.patch(`/entries/${id}`, data),
   delete: (id: string) => api.delete(`/entries/${id}`),
   summarize: (id: string) => api.post(`/entries/${id}/summarize`),
-  search: (q: string) => api.get('/entries/search', { params: { q } }),
+  search: (q: string, params?: { page?: number; limit?: number }) =>
+    api.get('/entries/search', { params: { q, ...params } }),
 };
 
 export const snippetsApi = {
-  getPublic: (params?: { language?: string; user?: string }) =>
+  getPublic: (params?: { language?: string; user?: string; search?: string; page?: number; limit?: number }) =>
     api.get('/snippets', { params }),
   getMy: () => api.get('/snippets/my'),
   getOne: (id: string) => api.get(`/snippets/${id}`),

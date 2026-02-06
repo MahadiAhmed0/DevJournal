@@ -48,9 +48,12 @@ export class SnippetsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all public snippets with optional filters' })
+  @ApiOperation({ summary: 'Get all public snippets with optional filters and search' })
   @ApiQuery({ name: 'language', required: false, description: 'Filter by programming language (e.g., typescript, python)' })
   @ApiQuery({ name: 'user', required: false, description: 'Filter by username' })
+  @ApiQuery({ name: 'search', required: false, description: 'Search by title, code, or description' })
+  @ApiQuery({ name: 'page', required: false, description: 'Page number' })
+  @ApiQuery({ name: 'limit', required: false, description: 'Items per page (max 50)' })
   @ApiResponse({ status: 200, description: 'List of public snippets' })
   async findAllPublic(@Query() query: QuerySnippetDto) {
     return this.snippetsService.findAllPublic(query);

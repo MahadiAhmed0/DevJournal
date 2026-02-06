@@ -55,40 +55,64 @@ export class SnippetsService {
   }
 
   async findAllPublic(query: QuerySnippetDto = {}) {
+    const { page = 1, limit = 50, language, user, search } = query;
+    const skip = (page - 1) * limit;
     const where: any = { isPublic: true };
 
     // Filter by language
-    if (query.language) {
-      where.language = query.language.toLowerCase();
+    if (language) {
+      where.language = language.toLowerCase();
     }
 
     // Filter by username
-    if (query.user) {
+    if (user) {
       where.user = {
-        username: query.user,
+        username: user,
       };
     }
 
-    return this.prisma.codeSnippet.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        entry: {
-          select: {
-            id: true,
-            title: true,
+    // Search by title, code, or description
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { code: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.codeSnippet.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          entry: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatar: true,
+            },
           },
         },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            avatar: true,
-          },
-        },
-      },
-    });
+      }),
+      this.prisma.codeSnippet.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: string, userId?: string | null) {
