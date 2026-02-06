@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { faker } from '@faker-js/faker';
+import { faker } from '@faker-js/faker/locale/en';
 
 const prisma = new PrismaClient();
 
@@ -17,6 +17,14 @@ const TAG_NAMES = [
 ];
 
 const LANGUAGES = ['typescript', 'javascript', 'python', 'java', 'sql'];
+
+const AVATAR_PROVIDERS = [
+  (seed: string) => `https://i.pravatar.cc/150?u=${seed}`,
+  (seed: string) => `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`,
+  (seed: string) => `https://api.dicebear.com/7.x/personas/svg?seed=${seed}`,
+  (seed: string) => `https://api.dicebear.com/7.x/notionists/svg?seed=${seed}`,
+  (seed: string) => `https://robohash.org/${seed}?set=set4&size=150x150`,
+];
 
 const CODE_SAMPLES: Record<string, string[]> = {
   typescript: [
@@ -584,7 +592,7 @@ async function createUsers(count: number) {
         email: faker.internet.email().toLowerCase(),
         name: faker.person.fullName(),
         username,
-        avatar: `https://i.pravatar.cc/150?u=${username}`,
+        avatar: getRandomElement(AVATAR_PROVIDERS)(username),
         bio: faker.person.bio(),
         githubUrl: `https://github.com/${username}`,
         linkedinUrl: `https://linkedin.com/in/${username}`,
