@@ -10,8 +10,6 @@
 [![NestJS](https://img.shields.io/badge/NestJS-10+-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
 [![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 
-![DevJournal Banner](https://via.placeholder.com/1200x400/6366f1/ffffff?text=DevJournal+-+Developer+Learning+Log)
-
 ## 🎯 Overview
 
 DevJournal is a full-stack application designed for developers to document their learning journey, store code snippets, and share knowledge with the community. It features AI-powered content summarization, syntax highlighting, and a clean, modern interface.
@@ -281,17 +279,6 @@ docker run -p 8000:8000 \
 - **Backend API**: https://very-austin-mahadi63-98cc9d5a.koyeb.app
 
 > ⚠️ **Note**: The live demo will be available until **February 11, 2026** due to Koyeb free trial expiration. After this date, you can run the project locally using the instructions above.
-
-## 📸 Screenshots
-
-### Landing Page
-![Landing Page](https://via.placeholder.com/800x450/1e1e2e/ffffff?text=Landing+Page)
-
-### Dashboard
-![Dashboard](https://via.placeholder.com/800x450/1e1e2e/ffffff?text=Dashboard)
-
-### Code Snippets
-![Code Snippets](https://via.placeholder.com/800x450/1e1e2e/ffffff?text=Code+Snippets)
 
 ## 🤝 Contributing
 
