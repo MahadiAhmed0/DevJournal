@@ -296,7 +296,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👤 Author
 
-**Your Name**
+**Golam Mahadi Ahmed**
 - GitHub: [@MahadiAhmed0](https://github.com/MahadiAhmed0)
 
 ## 🙏 Acknowledgments
